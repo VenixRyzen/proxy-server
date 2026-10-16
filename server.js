@@ -1,3 +1,4 @@
+// lang: JavaScript, file: server.js, target: Node.js / Express / Render Backend
 const express = require('express');
 const cors = require('cors');
 
@@ -51,7 +52,13 @@ app.post('/api/submit', async (req, res) => {
             body: JSON.stringify(discordPayload)
         });
 
-        if (!response.ok) {
+        if (response.status === 429) {
+            console.error('Discord global rate limit hit (429). Cooling down required.');
+            const body = await response.json();
+            if (body.retry_after) {
+                await new Promise(resolve => setTimeout(resolve, body.retry_after * 1000));
+            }
+        } else if (!response.ok) {
             const errText = await response.text();
             console.error(`Discord API Error: ${response.status} ${response.statusText} - ${errText}`);
         } else {
