@@ -1,4 +1,4 @@
-// lang: JavaScript, file: server.js, target: Node.js / Express / Fly.io Backend
+// lang: JavaScript, file: server.js, target: Node.js / Express / Render Backend
 const express = require('express');
 const cors = require('cors');
 
@@ -46,11 +46,15 @@ app.post('/api/submit', async (req, res) => {
             }]
         };
 
-        await fetch(DISCORD_WEBHOOK_URL, {
+        const response = await fetch(DISCORD_WEBHOOK_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(discordPayload)
         });
+
+        if (!response.ok) {
+            console.error(`Discord API Error: ${response.status} ${response.statusText}`);
+        }
     } catch (err) {
         console.error('Failed to dispatch webhook:', err);
     }
