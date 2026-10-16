@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1553661514022649867/Ds9rtK5L0c6Ix4MkqyUB8aoUknJp7NHHDMzgp5rZZ5l9dvmVNrxKMCmhfjP7uYxHRYI9';
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1560483785953378406/Z-c3KXiml5BKbJwqDKhD8UVpMjSFsKDy89ZYyAg0VU02MnxKSkOJ0ozzCg-MfJKZq5XP';
 
 app.use(cors());
 app.use(express.json());
