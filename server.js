@@ -26,11 +26,16 @@ async function processQueue() {
 
             if (response.status === 429) {
                 const retryAfterHeader = response.headers.get('retry-after');
-                let waitTime = retryAfterHeader ? parseFloat(retryAfterHeader) * 1000 : 5000;
+                let waitTime = retryAfterHeader ? parseFloat(retryAfterHeader) * 1000 : 10000;
                 
                 const body = await response.json().catch(() => ({}));
                 if (body.retry_after) {
                     waitTime = body.retry_after * 1000;
+                }
+
+                // Cap maximum wait time to 15 seconds to prevent locking up the queue too long
+                if (waitTime > 15000) {
+                    waitTime = 15000;
                 }
 
                 console.error(`Discord rate limit hit (429). Waiting ${waitTime}ms before retry.`);
