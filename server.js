@@ -3,12 +3,11 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1560483785953378406/Z-c3KXiml5BKbJwqDKhD8UVpMjSFsKDy89ZYyAg0VU02MnxKSkOJ0ozzCg-MfJKZq5XP';
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1560483785953378406/Z-c3KXiml5BKbJwqDKhD8UVpMjSFsKDy89ZYyAg0VU02MnxKSkOJ0ozzCg-MfJKZq5XP';
 
 app.use(cors());
 app.use(express.json());
 
-// Rate-limiting queue configuration
 let webhookQueue = [];
 let isProcessingQueue = false;
 
@@ -26,12 +25,17 @@ async function processQueue() {
             });
 
             if (response.status === 429) {
-                console.error('Discord global rate limit hit (429) in queue. Backing off...');
+                const retryAfterHeader = response.headers.get('retry-after');
+                let waitTime = retryAfterHeader ? parseFloat(retryAfterHeader) * 1000 : 5000;
+                
                 const body = await response.json().catch(() => ({}));
-                const retryAfter = body.retry_after ? body.retry_after * 1000 : 5000;
-                // Re-queue the payload and pause queue processing
+                if (body.retry_after) {
+                    waitTime = body.retry_after * 1000;
+                }
+
+                console.error(`Discord rate limit hit (429). Waiting ${waitTime}ms before retry.`);
                 webhookQueue.unshift(discordPayload);
-                await new Promise(resolve => setTimeout(resolve, retryAfter));
+                await new Promise(resolve => setTimeout(resolve, waitTime));
             } else if (!response.ok) {
                 const errText = await response.text();
                 console.error(`Discord API Error: ${response.status} ${response.statusText} -${errText}`);
@@ -42,7 +46,6 @@ async function processQueue() {
             console.error('Failed to dispatch webhook:', err);
         }
 
-        // Enforce a strict 2-second gap between individual webhook dispatches
         await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
@@ -85,7 +88,6 @@ app.post('/api/submit', async (req, res) => {
         }]
     };
 
-    // Push into the safe-execution queue instead of firing instantly
     webhookQueue.push(discordPayload);
     processQueue();
 
