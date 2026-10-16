@@ -1,4 +1,3 @@
-\// lang: JavaScript, file: server.js, target: Node.js / Express / Render Backend
 const express = require('express');
 const cors = require('cors');
 
