@@ -1,4 +1,4 @@
-// lang: JavaScript, file: server.js, target: Node.js / Express / Render Backend
+\// lang: JavaScript, file: server.js, target: Node.js / Express / Render Backend
 const express = require('express');
 const cors = require('cors');
 
@@ -53,7 +53,10 @@ app.post('/api/submit', async (req, res) => {
         });
 
         if (!response.ok) {
-            console.error(`Discord API Error: ${response.status} ${response.statusText}`);
+            const errText = await response.text();
+            console.error(`Discord API Error: ${response.status} ${response.statusText} - ${errText}`);
+        } else {
+            console.log('Discord webhook dispatched successfully.');
         }
     } catch (err) {
         console.error('Failed to dispatch webhook:', err);
